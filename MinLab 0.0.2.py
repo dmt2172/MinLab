@@ -1,15 +1,19 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-Created on Fri Oct  1 02:02:53 2021
+MinLab Alpha 0.0.2
 
+This is the second iteration of the framework of MinLab, a mineral label making tool. 
+The goal is to create a GUI which allows the user to quickly create many mineral labels
+using a spreadsheet, a template, and a preset
+
+date: Oct 1 2021
 @author: daveedo
 """
 
-
+#Importation of important modules
 from tkinter import *
 from PIL import Image, ImageTk
 from tkinter import filedialog
+from pathlib import Path
 import pandas as pd
 import numpy as np
 import sys 
@@ -17,9 +21,31 @@ import random
 import os
 import glob
 
+pathlib.Path('/Users/David 1/Desktop/Tkinter Labels/Presets/Preset 1.csv').suffix
 
 #Get Current directory, set as cd.
 cd = os.getcwd()
+
+#empty save directory
+savedir = ''
+
+#Empty Object Class with 9 parameters
+class Parameters:
+    def __init__(self,name,xpos,ypos,cent,maxw,font,size,caps,sci):
+        self.name = name
+        self.xpos = xpos
+        self.ypos = ypos
+        self.cent = cent
+        self.maxw = maxw
+        self.font = font
+        self.size = size
+        self.caps = caps
+        self.sci = sci
+    
+#Used to iterate an empty object for each column in the selected Spreadsheet
+class Option:
+    def __init__(self,tup):
+        self.a = [Parameters(*d) for d in tup]
 
 
 #establish root for tkinter
@@ -61,27 +87,20 @@ def BrowseSheet():
     
     #otherwise proceed
     else:
+        pathlib.Path(sheet).suffix
         #if the file is a .csv, process it into a pandas dataframe
-        if sheet[-4:-1] == '.cs':
+        if pathlib.Path(sheet).suffix == '.csv':
             df = pd.read_csv(sheet)
         
         #if the file is a .xlsx process it into a pandas dataframe
-        elif sheet[-5:-1] == '.xls':
+        elif pathlib.Path(sheet).suffix == '.xlsx':
             df = pd.read_excel(sheet)
          
         #resets the selected sheet label
         sheet_label.grid_forget()
        
         #Selects just the name of the sheet, not the whole directory
-        j=0
-        while j<1:
-            for i in range(len(sheet)):
-                if sheet[len(sheet)-1-i] == '/':
-                    sheetname = sheet[len(sheet)-i:len(sheet)]
-                    j=1
-                    break
-                else:
-                    pass
+        sheetname = Path(sheet).name
                 
         #displays the condensed filename as a label.     
         sheet_label = Label(selectionframe, text='Selected Sheet: ' +sheetname)
@@ -90,49 +109,30 @@ def BrowseSheet():
         #get the indexes
         columns = df.columns
     
-    #fill in the drop down menu
-    cpos_menu.grid_forget()
-    cpos.set('Select Option')
-    cpos_menu = OptionMenu(placementframe, cpos, *columns, command=SelectOption)
-    cpos_menu.grid(row=0, column=1)
+        #fill in the drop down menu
+        cpos_menu.grid_forget()
+        cpos.set('Select Option')
+        cpos_menu = OptionMenu(placementframe, cpos, *columns, command=SelectOption)
+        cpos_menu.grid(row=0, column=1)
+        
+    #Creates Objects and Empty Instances based on the column names
+        #creates a new list to be modified
+        newcolumns = list(columns)
+        
+        #for each position on the new list, make a list in that spot with 9 empty slots
+        for i in range(len(columns)):
+            newcolumns[i] = [newcolumns[i],0,0,0,0,'',0,0,0]
+        
+        #make that list of lists into a tuple
+        tup = tuple(newcolumns)
+        
+        #creates the multiple blank objects       
+        option = Option(tup)    
     
-    
-#Creates Objects and Empty Instances based on the column names
-    #creates a new list to be modified
-    newcolumns = list(columns)
-    
-    #for each position on the new list, make a list in that spot with 9 empty slots
-    for i in range(len(columns)):
-        newcolumns[i] = [newcolumns[i],0,0,0,0,'',0,0,0]
-    
-    #make that list of lists into a tuple
-    tup = tuple(newcolumns)
-    
-    #Empty Object Class with 9 parameters
-    class Parameters:
-        def __init__(self,name,xpos,ypos,cent,maxw,font,size,caps,sci):
-            self.name = name
-            self.xpos = xpos
-            self.ypos = ypos
-            self.cent = cent
-            self.maxw = maxw
-            self.font = font
-            self.size = size
-            self.caps = caps
-            self.sci = sci
-    
-    #Used to iterate an empty object for each column in the sheet
-    class Option:
-        def __init__(self):
-            self.a = [Parameters(*d) for d in tup]
-    
-    #creates the multiple blank objects       
-    option = Option()    
-
     #Enables some elements of the placement window:
-    preset_menu['state'] = NORMAL
-    cpos_label['state'] = NORMAL
-    preset_label['state'] = NORMAL
+        preset_menu['state'] = NORMAL
+        cpos_label['state'] = NORMAL
+        preset_label['state'] = NORMAL
 
     
 #Looks for a template image file and opens
@@ -159,15 +159,7 @@ def BrowseTemplate():
         temp_label.grid_forget()
        
         #Selects just the name of the sheet, not the whole directory
-        j=0
-        while j<1:
-            for i in range(len(template_filename)):
-                if template_filename[len(template_filename)-1-i] == '/':
-                    template_name = template_filename[len(template_filename)-i:len(template_filename)]
-                    j=1
-                    break
-                else:
-                    pass
+        template_name = Path(template_filename).name
                 
         #displays the condensed filename as a label.     
         temp_label = Label(selectionframe, text='Selected Template: ' +template_name)
@@ -185,6 +177,7 @@ def SelectOption(selection):
     global columns
     global cposition
     global font_label
+    global savedir
     
     
     #determine what the current position is
@@ -220,16 +213,9 @@ def SelectOption(selection):
     
     else:
         #Selects just the name of the font, not the whole directory
-        j=0
-        while j<1:
-            for i in range(len(option.a[cposition].font)):
-                if option.a[cposition].font[len(option.a[cposition].font)-1-i] == '/':
-                    font = option.a[cposition].font[len(option.a[cposition].font)-i:len(option.a[cposition].font)]
-                    j=1
-                    break
-                else:
-                    pass
-                
+        font = Path(option.a[cposition].font).stem
+        
+        #Updates the font label
         font_label.grid_forget()
         font_label = Label(placementframe, text = 'Font: '+font)
         font_label.grid(row=1, column=0)
@@ -287,15 +273,7 @@ def SelectFont():
         option.a[cposition].font = font_filename
         
         #Selects just the name of the font, not the whole directory
-        j=0
-        while j<1:
-            for i in range(len(font_filename)):
-                if font_filename[len(font_filename)-1-i] == '/':
-                    font = font_filename[len(font_filename)-i:len(font_filename)]
-                    j=1
-                    break
-                else:
-                    pass
+        font = Path(font_filename).stem
         
         #updates the font label
         font_label.grid_forget()
@@ -308,7 +286,7 @@ def only_numbers(char):
 validation = root.register(only_numbers)
 
 #updates the value of the Caps variable
-def Caps():
+def updateCaps():
     #global variables
     global cposition
     
@@ -316,14 +294,14 @@ def Caps():
     option.a[cposition].caps = caps_var.get()
 
 #updates the value of the Sci variable
-def Sci():
+def updateSci():
     #global variables
     global cposition
     
     #updates the value of the caps variable
     option.a[cposition].sci = sci_var.get()
 
-def Radio():
+def updateRadio():
     #global variables
     global cposition
     
@@ -340,18 +318,45 @@ def Update():
     option.a[cposition].ypos = ypos_ent.get()
     option.a[cposition].maxw = maxw_ent.get()
 
-    '''
-    size_ent
-    xpos_ent
-    ypos_ent
-    maxw_ent
-    '''
+#Updates Object instances to reflect the values stored in a preset, or do nothing if 'no preset' is selected
+def Preset():
     
+    #global variables
+    
+    pass 
 def Save():
     pass
 
+#saves the options and values to a .csv file.
 def Saveas():
-    pass
+    
+    #global variables
+    global f
+    global columns
+    global sf
+    global save_btn
+    
+    #prompts user to select location and name of the preset they wish to create
+    savedir = filedialog.asksaveasfilename(defaultextension=".csv", initialdir=cd+"/Presets")
+    if savedir is None: # asksaveasfile return `None` if dialog closed with "cancel".
+        return
+    
+    #creates a list of list of the objects
+    savelist = []
+    for i in range(len(columns)):
+        savelist.append([option.a[i].name,option.a[i].xpos,option.a[i].ypos,option.a[i].cent,option.a[i].maxw,option.a[i].font,option.a[i].size,option.a[i].caps,option.a[i].sci])
+    
+    #creates a list with the indexes for the save file
+    savecolumns = ['name','xpos','ypos','cent','maxw','font','size','caps','sci']
+    
+    #createsa pandas database with the Object data and Indexes
+    sf = pd.DataFrame(savelist, columns=savecolumns)
+    
+    #saves this database to the indicated save directory
+    sf.to_csv(savedir)
+    
+    #Activates the regular save button if it has not been updated already
+    save_btn['state'] = NORMAL
 
 #create widgets for selection frame
     
@@ -361,8 +366,6 @@ sheet_label = Label(selectionframe, text='')
 t_label = Label(selectionframe, text= "Choose a Template:")
 temp_label = Label(selectionframe, text='')
 
-
-    
     #Buttons
 ss_btn = Button(selectionframe, text= "Browse", command = BrowseSheet)
 t_btn = Button(selectionframe, text="Browse", command=BrowseTemplate)
@@ -423,12 +426,12 @@ save_btn = Button(placementframe, text='Save' , command=Save)
 saveas_btn = Button(placementframe, text='Save as' , command=Saveas)
 
     #Radio Buttons
-cent_btn = Radiobutton(placementframe, text="Centered around point", variable=cent_var, value=0, command=Radio)
-ex_btn = Radiobutton(placementframe, text="Exact Point", variable=cent_var, value=1, command=Radio)
+cent_btn = Radiobutton(placementframe, text="Centered around point", variable=cent_var, value=0, command=updateRadio)
+ex_btn = Radiobutton(placementframe, text="Exact Point", variable=cent_var, value=1, command=updateRadio)
 
     #Check Buttons
-caps_btn = Checkbutton(placementframe, variable=caps_var, command=Caps)
-sci_btn = Checkbutton(placementframe, variable=sci_var, command=Sci)
+caps_btn = Checkbutton(placementframe, variable=caps_var, command=updateCaps)
+sci_btn = Checkbutton(placementframe, variable=sci_var, command=updateSci)
     
     #Option  menu
 cpos_menu = OptionMenu(placementframe, cpos, cpos, *columns, command=SelectOption)
@@ -515,4 +518,5 @@ xpos_ent['state'] = DISABLED
 ypos_ent['state'] = DISABLED
 maxw_ent['state'] = DISABLED
 
+#established the mainloop of the tkinter root
 root.mainloop()
