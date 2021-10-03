@@ -81,6 +81,7 @@ def BrowseSheet():
     global option
     global index_var
     global index_menu
+    global save_box
     
     #uses filedialog to open the file. 
     sheet = filedialog.askopenfilename(title="Open a Spreadsheet", initialdir=cd+"/Spreadsheets", filetypes=(('csv files', '*.csv'), ('xlsx files', '*.xlsx')))
@@ -155,6 +156,18 @@ def BrowseSheet():
         index_var.set('Select Index')
         index_menu = OptionMenu(itemframe, index_var, *columns, command=selectIndex)
         index_menu.grid(row=0, column=1)
+        
+        #fill in the listbox for choosing a save name
+        save_names_list = [columns[0] + ' + ' + columns[1], columns[0] + ' Only', columns[1] + ' + ' + columns[3], columns[0] + ' Label']
+        
+       #convert this list into a StringVar for the list to process 
+        save_names_var = StringVar(value=save_names_list)
+            
+        #Update save box with all the options for items to select
+        save_box.grid_forget()
+        save_box= Listbox(itemframe, width=40, height=4, listvariable=save_names_var, selectmode=BROWSE)
+        save_box.grid(row=5, column=0, columnspan=2)
+        save_box.bind("<<ListboxSelect>>", selectSaveFormat)
 
     
 #Looks for a template image file and opens
@@ -694,7 +707,31 @@ def allItem():
     text_box.delete('1.0', END)
     text_box.insert(INSERT, selected_list)
     text_box['state'] = DISABLED
+
+#When an option for the save format of each label is chosen from the list box, update the variable, and example
+def selectSaveFormat(virtualevent):
     
+    #global variables
+    global example_lab
+    print(save_box.curselection())
+    
+    #For whatever is selected, update the example label.
+    if save_box.curselection() == (0,):
+        example = sheetDataFrame.iloc[0][0] + ' + ' + sheetDataFrame.iloc[0][1] + '.jpg'
+    
+    elif save_box.curselection() == (1,):
+        example = sheetDataFrame.iloc[0][0] + '.jpg'
+    
+    elif save_box.curselection() == (2,):
+        example = sheetDataFrame.iloc[0][1] + ' + ' + sheetDataFrame.iloc[0][3] + '.jpg'
+        
+    elif save_box.curselection() == (3,):
+        example = sheetDataFrame.iloc[0][0] + ' Label' + '.jpg'
+    
+    #Update the example label to reflect the choice
+    example_lab.grid_forget()
+    example_lab = Label(itemframe, text= 'Example: '+example)
+    example_lab.grid(row=6, column=0, columnspan=2)    
 
 #The ultimate command. Checks to see if all preconditions are met, then creates labels.
 def createLabels():
@@ -897,6 +934,7 @@ index_menu = OptionMenu(itemframe, index_var, index_var, *columns, command=selec
     #List Boxes
 option_box= Listbox(itemframe, width=40, height=9)
 save_box= Listbox(itemframe, width=40, height=4)
+save_box.bind("<<ListboxSelect>>", selectSaveFormat)
     
     #Text Box
 text_box = Text(itemframe, width=25, height=10, bd=1, relief='solid', wrap=WORD)
