@@ -216,7 +216,6 @@ def SelectOption(selection):
     ypos_label['state'] = NORMAL
     maxw_label['state'] = NORMAL
     font_btn['state'] = NORMAL
-    #update_btn['state'] = NORMAL
     saveas_btn['state'] = NORMAL
     cent_btn['state'] = NORMAL
     ex_btn['state'] = NORMAL
@@ -301,14 +300,6 @@ def SelectFont():
         font_label = Label(placementframe, text = 'Font: '+font)
         font_label.grid(row=1, column=1)
 
-'''
-Made uselss by implementation of spinboxes
-# function to validate mark entry
-def only_numbers(char):
-    return char.isdigit()
-validation = root.register(only_numbers)
-'''
-
 #updates the value of the Caps variable
 def updateCaps():
     #global variables
@@ -364,21 +355,6 @@ def updateMaxW():
     
     #updates the values of size
     option.a[cposition].maxw = maxw_box.get()
-
-'''
-Made redundant by the implementation of spinboxes
-
-#Updates size, xpos, ypos, and maxw when update button is hit
-def Update():
-    #global variables
-    global cposition
-    
-    #updates the values of each respective variable
-    option.a[cposition].size = size_box.get()
-    option.a[cposition].xpos = xpos_box.get()
-    option.a[cposition].ypos = ypos_box.get()
-    option.a[cposition].maxw = maxw_box.get()
-'''
 
 #Updates Object instances to reflect the values stored in a preset, or do nothing if 'no preset' is selected
 def choosePreset(choice):
@@ -568,6 +544,7 @@ def selectIndex(selection):
     global option_box
     global selected
     global item_list
+    global selected_items
     
     #pass name of selection onwards
     selected = selection
@@ -575,13 +552,27 @@ def selectIndex(selection):
     #make a list of all the elements under the selected index from the sheetDataFrame
     item_list = []
     for i in range(len(sheetDataFrame[selection])):
-        if sheetDataFrame.iloc[i][selection] in item_list:
-            duplicates = ' ' + str(str(item_list).count(sheetDataFrame.iloc[i][selection])+1)
-            item_list.append(sheetDataFrame.iloc[i][selection]+duplicates)
+        #if the position is nan, convert it to ''
+        if type(sheetDataFrame.iloc[i][selection]) == float:
+            sheetDataFrame.iloc[i][selection] = ''
         
+        #if the name of the item is taken already
+        if sheetDataFrame.iloc[i][selection] in item_list:
+            #and the item is not ''
+            if sheetDataFrame.iloc[i][selection] != '':
+                #count the number of duplicates and add a number for it
+                duplicates = ' ' + str(str(item_list).count(sheetDataFrame.iloc[i][selection])+1)
+                item_list.append(sheetDataFrame.iloc[i][selection]+duplicates)
+            
+            #otherwise, just add '', duplicates of that dont matter
+            elif sheetDataFrame.iloc[i][selection] == '':
+                item_list.append('')
+        
+        #if it is not a duplicate name, just add it normally
         elif sheetDataFrame.iloc[i][selection] not in item_list:
             item_list.append(sheetDataFrame.iloc[i][selection])
-        
+     
+    #convert this list into a StringVar for the option box to process
     itemlist_var = StringVar(value=item_list)
         
     #Update option box with all the options for items to select
@@ -590,7 +581,14 @@ def selectIndex(selection):
     option_box.grid(row=1, column=0, columnspan=2)
     
     #update the text box to reflect the change in index
+    selected_list = []
+    for i in range(len(selected_items)):
+        selected_list.append(item_list[selected_items[i]])
     
+    text_box['state'] = NORMAL
+    text_box.delete('1.0', END)
+    text_box.insert(INSERT, selected_list)
+    text_box['state'] = DISABLED
 
 #adds the selected item/items to the list of items to be made into labels
 def addItem():
@@ -628,7 +626,7 @@ def addItem():
 #removes the selected item/items from the list of items to be made into labels
 def removeItem():
     
-    #global variable
+    #global variables
     global option_box
     global selected_items
     global selected
@@ -654,18 +652,55 @@ def removeItem():
     text_box.delete('1.0', END)
     text_box.insert(INSERT, selected_list)
     text_box['state'] = DISABLED
-            
+    
 
 #removes ALL items from the list of items to be made into labels
 def clearItem():
+    
+    #global variables
+    global option_box
+    global selected_items
+    global selected
+    global selected_list
+    
+    #updates the 2 lists associated
+    selected_items = []
+    selected_list = []
+    
+    #Updates the Text Box
+    text_box['state'] = NORMAL
+    text_box.delete('1.0', END)
+    text_box.insert(INSERT, selected_list)
+    text_box['state'] = DISABLED
+    
     pass
 
 #adds ALL items to the list of items to be made into labels
 def allItem():
-    pass
+    
+    #global variables
+    global option_box
+    global selected_items
+    global selected
+    global selected_list
+    global item_list
+    
+    #updates the 2 lists associated
+    selected_items = list(range(len(item_list)))
+    selected_list = item_list
+    
+    #Updates the Text Box
+    text_box['state'] = NORMAL
+    text_box.delete('1.0', END)
+    text_box.insert(INSERT, selected_list)
+    text_box['state'] = DISABLED
+    
 
 #The ultimate command. Checks to see if all preconditions are met, then creates labels.
 def createLabels():
+    pass
+
+def labelMaker(x,y):
     pass
       
 #create widgets for selection frame
@@ -737,12 +772,6 @@ sci_var = IntVar()
     
     #Buttons
 font_btn = Button(placementframe, text= 'Browse', command=SelectFont)
-
-'''
-Made redundant by the implementation of spinboxes
-update_btn = Button(placementframe, text='Update' , command=Update)
-'''
-
 save_btn = Button(placementframe, text='Save' , command=Save)
 saveas_btn = Button(placementframe, text='Save as' , command=Saveas)
 
@@ -922,24 +951,5 @@ save_box['state'] = DISABLED
     #Text Box
 text_box['state'] = DISABLED
 
-'''
-showop_lab
-saveop_lab
-text_lab
-example_lab
-
-add_btn
-remove_btn
-clear_btn
-all_btn
-go_btn
-
-index_menu
-
-option_box
-save_box
-
-text_box
-'''
 #establishes the mainloop of the tkinter root
 root.mainloop()
