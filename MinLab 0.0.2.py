@@ -21,7 +21,7 @@ import random
 import os
 import glob
 
-pathlib.Path('/Users/David 1/Desktop/Tkinter Labels/Presets/Preset 1.csv').suffix
+
 
 #Get Current directory, set as cd.
 cd = os.getcwd()
@@ -71,7 +71,7 @@ def BrowseSheet():
     
     #global variables
     global cd
-    global df
+    global sheetDataFrame
     global sheet_label
     global columns
     global cpos
@@ -87,14 +87,13 @@ def BrowseSheet():
     
     #otherwise proceed
     else:
-        pathlib.Path(sheet).suffix
         #if the file is a .csv, process it into a pandas dataframe
-        if pathlib.Path(sheet).suffix == '.csv':
-            df = pd.read_csv(sheet)
+        if Path(sheet).suffix == '.csv':
+            sheetDataFrame = pd.read_csv(sheet)
         
         #if the file is a .xlsx process it into a pandas dataframe
-        elif pathlib.Path(sheet).suffix == '.xlsx':
-            df = pd.read_excel(sheet)
+        elif Path(sheet).suffix == '.xlsx':
+            sheetDataFrame = pd.read_excel(sheet)
          
         #resets the selected sheet label
         sheet_label.grid_forget()
@@ -107,7 +106,7 @@ def BrowseSheet():
         sheet_label.grid(row=1, column=0, columnspan=2)
     
         #get the indexes
-        columns = df.columns
+        columns = sheetDataFrame.columns
     
         #fill in the drop down menu
         cpos_menu.grid_forget()
@@ -178,7 +177,7 @@ def SelectOption(selection):
     global cposition
     global font_label
     global savedir
-    
+    global option
     
     #determine what the current position is
     for i in range(len(columns)):
@@ -319,22 +318,138 @@ def Update():
     option.a[cposition].maxw = maxw_ent.get()
 
 #Updates Object instances to reflect the values stored in a preset, or do nothing if 'no preset' is selected
-def Preset():
+def choosePreset(choice):
     
     #global variables
+    global savedir
+    global presetDataFrame
+    global columns
+    global option
+    global cposition
+    global save_btn
+    global font_label
     
-    pass 
+    #if no preset selected
+    if preset.get() == 'No Preset':
+        return
+    
+    #if a choice is made
+    else:
+        #open the preset file
+        presetdir = cd + '/Presets/' + preset.get()
+        savedir = presetdir
+        presetDataFrame = pd.read_csv(presetdir)
+        
+        #update the objects
+        for i in range(len(columns)):
+            option.a[i].name = presetDataFrame['name'][i]
+            option.a[i].xpos = presetDataFrame['xpos'][i]
+            option.a[i].ypos = presetDataFrame['ypos'][i]
+            option.a[i].cent = presetDataFrame['cent'][i]
+            option.a[i].maxw = presetDataFrame['maxw'][i]
+            option.a[i].size = presetDataFrame['size'][i]
+            option.a[i].caps = presetDataFrame['caps'][i]
+            option.a[i].sci = presetDataFrame['sci'][i]
+        
+            if type(presetDataFrame['font'][i]) == str:
+                option.a[i].font = presetDataFrame['font'][i]
+            else: 
+                option.a[i].font = ''
+                
+        #updates the widgets
+        #Updates font label to reflect the current position
+        if option.a[cposition].font == '' :
+            font_label.grid_forget()
+            font_label = Label(placementframe, text = 'Select Font:')
+            font_label.grid(row=1, column=0)
+        
+        else:
+            #Selects just the name of the font, not the whole directory
+            font = Path(option.a[cposition].font).stem
+            
+            #Updates the font label
+            font_label.grid_forget()
+            font_label = Label(placementframe, text = 'Font: '+font)
+            font_label.grid(row=1, column=0)
+            
+        #Updates the Caps button to be on or off
+        if option.a[cposition].caps == 0:
+            caps_btn.deselect()
+            
+        else: 
+            caps_btn.select()
+            
+        #Updates the Sci button to be on or off
+        if option.a[cposition].sci == 0:
+            sci_btn.deselect()
+            
+        else: 
+            sci_btn.select()
+            
+        #Updates the Radio Buttons to be on the corresponding button based on cent
+        if option.a[cposition].cent == 0:
+            cent_btn.select()
+            
+        else: 
+            ex_btn.select()
+            
+        size_ent.delete(0,END)
+        xpos_ent.delete(0,END)
+        ypos_ent.delete(0,END)
+        maxw_ent.delete(0,END)
+        
+        size_ent.insert(0, option.a[cposition].size)
+        xpos_ent.insert(0, option.a[cposition].xpos)
+        ypos_ent.insert(0, option.a[cposition].ypos)
+        maxw_ent.insert(0, option.a[cposition].maxw)
+        
+        #activate save button
+        save_btn['state'] = NORMAL
+
+#saves the current options to the selected preset directory
 def Save():
-    pass
+    
+    #global variables
+    global savedir
+    global columns
+    global option
+    
+    #allows for the option where savedir is empty to skip
+    if savedir is None: # asksaveasfile return `None` if dialog closed with "cancel".
+        return
+    
+    #creates a list of list of the objects
+    savelist = []
+    for i in range(len(columns)):
+        savelist.append([option.a[i].name,
+                         option.a[i].xpos,
+                         option.a[i].ypos,
+                         option.a[i].cent,
+                         option.a[i].maxw,
+                         option.a[i].font,
+                         option.a[i].size,
+                         option.a[i].caps,
+                         option.a[i].sci])
+    
+    #creates a list with the indexes for the save file
+    savecolumns = ['name','xpos','ypos','cent','maxw','font','size','caps','sci']
+    
+    #createsa pandas database with the Object data and Indexes
+    saveDataFrame = pd.DataFrame(savelist, columns=savecolumns)
+    
+    #saves this database to the indicated save directory
+    saveDataFrame.to_csv(savedir)
 
 #saves the options and values to a .csv file.
 def Saveas():
     
     #global variables
-    global f
     global columns
-    global sf
+    global saveDataFrame
     global save_btn
+    global preset_menu
+    global result
+    global preset
     
     #prompts user to select location and name of the preset they wish to create
     savedir = filedialog.asksaveasfilename(defaultextension=".csv", initialdir=cd+"/Presets")
@@ -344,20 +459,41 @@ def Saveas():
     #creates a list of list of the objects
     savelist = []
     for i in range(len(columns)):
-        savelist.append([option.a[i].name,option.a[i].xpos,option.a[i].ypos,option.a[i].cent,option.a[i].maxw,option.a[i].font,option.a[i].size,option.a[i].caps,option.a[i].sci])
+        savelist.append([option.a[i].name,
+                         option.a[i].xpos,
+                         option.a[i].ypos,
+                         option.a[i].cent,
+                         option.a[i].maxw,
+                         option.a[i].font,
+                         option.a[i].size,
+                         option.a[i].caps,
+                         option.a[i].sci])
     
     #creates a list with the indexes for the save file
     savecolumns = ['name','xpos','ypos','cent','maxw','font','size','caps','sci']
     
     #createsa pandas database with the Object data and Indexes
-    sf = pd.DataFrame(savelist, columns=savecolumns)
+    saveDataFrame = pd.DataFrame(savelist, columns=savecolumns)
     
     #saves this database to the indicated save directory
-    sf.to_csv(savedir)
+    saveDataFrame.to_csv(savedir)
     
     #Activates the regular save button if it has not been updated already
     save_btn['state'] = NORMAL
-
+    
+    #updates the list of presets to reflect the addition of the new preset
+    path = cd + "/Presets"
+    extension = 'csv'
+    os.chdir(path)
+    result = glob.glob('*.{}'.format(extension))
+    result.sort()
+    
+    #updates the preset menu to show the new file is selected
+    preset.set(Path(savedir).stem)
+    preset_menu.grid_forget()
+    preset_menu = OptionMenu(placementframe, preset,'No Preset', *result)
+    preset_menu.grid(row=0, column=3)
+        
 #create widgets for selection frame
     
     #Labels
@@ -414,6 +550,7 @@ path = cd + "/Presets"
 extension = 'csv'
 os.chdir(path)
 result = glob.glob('*.{}'.format(extension))
+result.sort()
 
 cent_var = IntVar()
 caps_var = IntVar()
@@ -435,7 +572,7 @@ sci_btn = Checkbutton(placementframe, variable=sci_var, command=updateSci)
     
     #Option  menu
 cpos_menu = OptionMenu(placementframe, cpos, cpos, *columns, command=SelectOption)
-preset_menu = OptionMenu(placementframe, preset,'No Preset', *result)
+preset_menu = OptionMenu(placementframe, preset,'No Preset', *result, command=choosePreset)
     
     #Entry boxes
 size_ent = Entry(placementframe, validate='key', validatecommand=(validation, '%S'))
