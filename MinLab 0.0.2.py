@@ -57,12 +57,14 @@ root.title('MinLab Alpha 0.0.2')
 selectionframe = Frame(root)
 templateframe = Frame(root)
 placementframe = Frame(root)
+itemframe = Frame(root)
 
 
 #Place Frames
 selectionframe.grid(row=0, column=0)
 templateframe.grid(row=0, column=1)
 placementframe.grid(row=1, column=0)
+itemframe.grid(row=1, column=1)
 
 #Commands go here
 
@@ -132,6 +134,20 @@ def BrowseSheet():
         preset_menu['state'] = NORMAL
         cpos_label['state'] = NORMAL
         preset_label['state'] = NORMAL
+        
+        #Activates inactive widgets in item frame
+        showop_lab['state'] = NORMAL
+        saveop_lab['state'] = NORMAL
+        text_lab['state'] = NORMAL
+        example_lab['state'] = NORMAL
+        add_btn['state'] = NORMAL
+        remove_btn['state'] = NORMAL
+        clear_btn['state'] = NORMAL
+        all_btn['state'] = NORMAL
+        index_menu['state'] = NORMAL
+        option_box['state'] = NORMAL
+        save_box['state'] = NORMAL
+        text_box['state'] = NORMAL
 
     
 #Looks for a template image file and opens
@@ -249,7 +265,6 @@ def SelectOption(selection):
     xpos_box.insert(0, option.a[cposition].xpos)
     ypos_box.insert(0, option.a[cposition].ypos)
     maxw_box.insert(0, option.a[cposition].maxw)
-        
     
         
 #Selects font when font browse button is clicked
@@ -511,6 +526,24 @@ def Saveas():
                          option.a[i].caps,
                          option.a[i].sci])
     
+def chooseFormat():
+    pass
+
+def addItem():
+    pass
+
+def removeItem():
+    pass
+
+def clearItem():
+    pass
+
+def allItem():
+    pass
+
+def createLabels():
+    pass
+    
     #creates a list with the indexes for the save file
     savecolumns = ['name','xpos','ypos','cent','maxw','font','size','caps','sci']
     
@@ -632,7 +665,7 @@ xpos_box = Spinbox(placementframe,from_=0, to=10000, textvariable=xpos_var, comm
 ypos_box = Spinbox(placementframe,from_=0, to=10000, textvariable=ypos_var, command=updateYpos)
 maxw_box = Spinbox(placementframe,from_=0, to=10000, textvariable=maxw_var, command=updateMaxW)
 
-#place widgets in placement frame
+#Place widgets in placement frame
     
     #Labels
 cpos_label.grid(row=0 , column=0)
@@ -664,7 +697,7 @@ sci_btn.grid(row=5, column=3)
 cpos_menu.grid(row=0, column=1)
 preset_menu.grid(row=0, column=3)
     
-    #Entry Boxes
+    #Spin Boxes
 size_box.grid(row=2, column=1)
 xpos_box.grid(row=3, column=1)
 ypos_box.grid(row=3, column=3)
@@ -701,11 +734,112 @@ sci_btn['state'] = DISABLED
 cpos_menu['state'] = DISABLED
 preset_menu['state'] = DISABLED
 
-    #Entry Boxes
+    #Spin Boxes
 size_box['state'] = DISABLED
 xpos_box['state'] = DISABLED
 ypos_box['state'] = DISABLED
 maxw_box['state'] = DISABLED
 
-#established the mainloop of the tkinter root
+#Create Widgets in item frame
+
+    #Labels
+showop_lab = Label(itemframe, text='Show by Index:')
+saveop_lab = Label(itemframe, text='Save Name Format:')
+text_lab = Label(itemframe, text='Selected Items:')
+example_lab = Label(itemframe, text='Example: >Choose a Format<')
+
+    #Variables
+index_var = StringVar()
+index_var.set('Choose a Spreadsheet first')
+    
+    #Buttons
+add_btn = Button(itemframe, text='Add', command=addItem)
+remove_btn = Button(itemframe, text='Remove', command=removeItem)
+clear_btn = Button(itemframe, text='Clear', command=clearItem)
+all_btn = Button(itemframe, text = 'All', command=allItem)
+go_btn = Button(itemframe, text='Create Labels', command=createLabels)
+
+
+    #Option Menus
+index_menu = OptionMenu(itemframe, index_var, index_var, *columns, command=chooseFormat)
+    
+    #List Boxes
+option_box= Listbox(itemframe, width=40, height=9)
+save_box= Listbox(itemframe, width=40, height=4)
+    
+    #Text Box
+text_box = Text(itemframe, width=25, height=10, bd=1, relief='solid')
+text_box.insert(INSERT,'gloop gloop gloop gloop gloop gloop gloop')
+#Place Widgets in item frame
+
+    #Labels
+showop_lab.grid(row=0 , column=0)
+saveop_lab.grid(row=4 , column=0, columnspan=2)
+text_lab.grid(row=0 , column=3)
+example_lab.grid(row=6, column=0, columnspan=2)
+    
+    #Buttons
+add_btn.grid(row=2 , column=0)
+remove_btn.grid(row=2 , column=1)
+clear_btn.grid(row=3 , column=1)
+all_btn.grid(row=3, column=0)
+go_btn.grid(row=2 , column=3, rowspan=4)
+
+    #Option Menus
+index_menu.grid(row=0, column=1)
+
+    #List Boxes
+option_box.grid(row=1 , column=0, columnspan=3)
+save_box.grid(row=5 , column=0, columnspan=3)
+    
+    #Text Box
+text_box.grid(row=1, column=3)
+
+    
+#Disables inactive widgets in item frame
+    
+    #Labels
+showop_lab['state'] = DISABLED
+saveop_lab['state'] = DISABLED
+text_lab['state'] = DISABLED
+example_lab['state'] = DISABLED
+    #Variables
+    
+    #Buttons
+add_btn['state'] = DISABLED
+remove_btn['state'] = DISABLED
+clear_btn['state'] = DISABLED
+all_btn['state'] = DISABLED
+go_btn['state'] = DISABLED
+
+    #Option Menus
+index_menu['state'] = DISABLED
+
+    #List Boxes
+option_box['state'] = DISABLED
+save_box['state'] = DISABLED 
+   
+    #Text Box
+text_box['state'] = DISABLED
+
+'''
+showop_lab
+saveop_lab
+text_lab
+example_lab
+
+add_btn
+remove_btn
+clear_btn
+all_btn
+go_btn
+
+index_menu
+
+option_box
+save_box
+
+text_box
+'''
+#establishes the mainloop of the tkinter root
 root.mainloop()
