@@ -79,6 +79,8 @@ def BrowseSheet():
     global cpos
     global cpos_menu
     global option
+    global index_var
+    global index_menu
     
     #uses filedialog to open the file. 
     sheet = filedialog.askopenfilename(title="Open a Spreadsheet", initialdir=cd+"/Spreadsheets", filetypes=(('csv files', '*.csv'), ('xlsx files', '*.xlsx')))
@@ -110,7 +112,7 @@ def BrowseSheet():
         #get the indexes
         columns = sheetDataFrame.columns
     
-        #fill in the drop down menu
+        #fill in the drop down menu for placement frame
         cpos_menu.grid_forget()
         cpos.set('Select Option')
         cpos_menu = OptionMenu(placementframe, cpos, *columns, command=SelectOption)
@@ -147,7 +149,12 @@ def BrowseSheet():
         index_menu['state'] = NORMAL
         option_box['state'] = NORMAL
         save_box['state'] = NORMAL
-        text_box['state'] = NORMAL
+        
+        #fill in index menu in item frame
+        index_menu.grid_forget()
+        index_var.set('Select Index')
+        index_menu = OptionMenu(itemframe, index_var, *columns, command=selectIndex)
+        index_menu.grid(row=0, column=1)
 
     
 #Looks for a template image file and opens
@@ -294,10 +301,13 @@ def SelectFont():
         font_label = Label(placementframe, text = 'Font: '+font)
         font_label.grid(row=1, column=1)
 
+'''
+Made uselss by implementation of spinboxes
 # function to validate mark entry
 def only_numbers(char):
     return char.isdigit()
 validation = root.register(only_numbers)
+'''
 
 #updates the value of the Caps variable
 def updateCaps():
@@ -526,24 +536,6 @@ def Saveas():
                          option.a[i].caps,
                          option.a[i].sci])
     
-def chooseFormat():
-    pass
-
-def addItem():
-    pass
-
-def removeItem():
-    pass
-
-def clearItem():
-    pass
-
-def allItem():
-    pass
-
-def createLabels():
-    pass
-    
     #creates a list with the indexes for the save file
     savecolumns = ['name','xpos','ypos','cent','maxw','font','size','caps','sci']
     
@@ -568,7 +560,114 @@ def createLabels():
     preset_menu.grid_forget()
     preset_menu = OptionMenu(placementframe, preset,'No Preset', *result)
     preset_menu.grid(row=0, column=3)
+
+#populates the option box with items to choose from based on the selected Index
+def selectIndex(selection):
+    
+    #global variables
+    global option_box
+    global selected
+    global item_list
+    
+    #pass name of selection onwards
+    selected = selection
+    
+    #make a list of all the elements under the selected index from the sheetDataFrame
+    item_list = []
+    for i in range(len(sheetDataFrame[selection])):
+        if sheetDataFrame.iloc[i][selection] in item_list:
+            duplicates = ' ' + str(str(item_list).count(sheetDataFrame.iloc[i][selection])+1)
+            item_list.append(sheetDataFrame.iloc[i][selection]+duplicates)
         
+        elif sheetDataFrame.iloc[i][selection] not in item_list:
+            item_list.append(sheetDataFrame.iloc[i][selection])
+        
+    itemlist_var = StringVar(value=item_list)
+        
+    #Update option box with all the options for items to select
+    option_box.grid_forget()
+    option_box= Listbox(itemframe, width=40, height=9, listvariable=itemlist_var, selectmode=EXTENDED)
+    option_box.grid(row=1, column=0, columnspan=2)
+    
+    #update the text box to reflect the change in index
+    
+
+#adds the selected item/items to the list of items to be made into labels
+def addItem():
+    
+    #global variable
+    global option_box
+    global selected_items
+    global selected
+    global selected_list
+    global item_list
+    global positions_list
+    
+    #makes a tuple of the current selected items
+    item_tup = option_box.curselection()
+    
+    #For every item that is selected, add it to the selected items list
+    for i in range(len(item_tup)):
+        #checks for duplicates
+        if item_tup[i] not in selected_items:
+            selected_items.append(item_tup[i])
+            selected_items.sort()
+    
+    #makes a list of the names of the selected items
+    for i in range(len(item_tup)):
+        position = item_tup[i]
+        if item_list[position] not in selected_list:
+            selected_list.append(item_list[position])
+    
+    #Updates the Text Box
+    text_box['state'] = NORMAL
+    text_box.delete('1.0', END)
+    text_box.insert(INSERT, selected_list)
+    text_box['state'] = DISABLED
+
+#removes the selected item/items from the list of items to be made into labels
+def removeItem():
+    
+    #global variable
+    global option_box
+    global selected_items
+    global selected
+    global selected_list
+    
+    #makes a tuple of the current selected items
+    item_tup = option_box.curselection()
+    
+    #For every item that is selected, remove it from the selected items list
+    for i in range(len(item_tup)):
+        if item_tup[i] in selected_items:
+            selected_items.remove(item_tup[i])
+            
+    #makes a list of the names of the selected items
+    for i in range(len(item_tup)):
+        position = item_tup[i]
+        print(selected_list)
+        if item_list[position] in selected_list:
+            selected_list.remove(item_list[position])
+    
+    #Updates the Text Box
+    text_box['state'] = NORMAL
+    text_box.delete('1.0', END)
+    text_box.insert(INSERT, selected_list)
+    text_box['state'] = DISABLED
+            
+
+#removes ALL items from the list of items to be made into labels
+def clearItem():
+    pass
+
+#adds ALL items to the list of items to be made into labels
+def allItem():
+    pass
+
+#The ultimate command. Checks to see if all preconditions are met, then creates labels.
+def createLabels():
+    pass
+      
 #create widgets for selection frame
     
     #Labels
@@ -751,6 +850,9 @@ example_lab = Label(itemframe, text='Example: >Choose a Format<')
     #Variables
 index_var = StringVar()
 index_var.set('Choose a Spreadsheet first')
+selected_items = []
+selected_list = []
+positions_list = []
     
     #Buttons
 add_btn = Button(itemframe, text='Add', command=addItem)
@@ -761,15 +863,14 @@ go_btn = Button(itemframe, text='Create Labels', command=createLabels)
 
 
     #Option Menus
-index_menu = OptionMenu(itemframe, index_var, index_var, *columns, command=chooseFormat)
+index_menu = OptionMenu(itemframe, index_var, index_var, *columns, command=selectIndex)
     
     #List Boxes
 option_box= Listbox(itemframe, width=40, height=9)
 save_box= Listbox(itemframe, width=40, height=4)
     
     #Text Box
-text_box = Text(itemframe, width=25, height=10, bd=1, relief='solid')
-text_box.insert(INSERT,'gloop gloop gloop gloop gloop gloop gloop')
+text_box = Text(itemframe, width=25, height=10, bd=1, relief='solid', wrap=WORD)
 #Place Widgets in item frame
 
     #Labels
@@ -789,8 +890,8 @@ go_btn.grid(row=2 , column=3, rowspan=4)
 index_menu.grid(row=0, column=1)
 
     #List Boxes
-option_box.grid(row=1 , column=0, columnspan=3)
-save_box.grid(row=5 , column=0, columnspan=3)
+option_box.grid(row=1 , column=0, columnspan=2)
+save_box.grid(row=5 , column=0, columnspan=2)
     
     #Text Box
 text_box.grid(row=1, column=3)
@@ -803,7 +904,6 @@ showop_lab['state'] = DISABLED
 saveop_lab['state'] = DISABLED
 text_lab['state'] = DISABLED
 example_lab['state'] = DISABLED
-    #Variables
     
     #Buttons
 add_btn['state'] = DISABLED
