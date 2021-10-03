@@ -62,7 +62,7 @@ placementframe = Frame(root)
 #Place Frames
 selectionframe.grid(row=0, column=0)
 templateframe.grid(row=0, column=1)
-placementframe.grid(row=1, column=0, columnspan=2)
+placementframe.grid(row=1, column=0)
 
 #Commands go here
 
@@ -193,22 +193,22 @@ def SelectOption(selection):
     ypos_label['state'] = NORMAL
     maxw_label['state'] = NORMAL
     font_btn['state'] = NORMAL
-    update_btn['state'] = NORMAL
+    #update_btn['state'] = NORMAL
     saveas_btn['state'] = NORMAL
     cent_btn['state'] = NORMAL
     ex_btn['state'] = NORMAL
     caps_btn['state'] = NORMAL
     sci_btn['state'] = NORMAL
-    size_ent['state'] = NORMAL
-    xpos_ent['state'] = NORMAL
-    ypos_ent['state'] = NORMAL
-    maxw_ent['state'] = NORMAL
+    size_box['state'] = NORMAL
+    xpos_box['state'] = NORMAL
+    ypos_box['state'] = NORMAL
+    maxw_box['state'] = NORMAL
     
     #Updates font label to reflect the current position
     if option.a[cposition].font == '' :
         font_label.grid_forget()
         font_label = Label(placementframe, text = 'Select Font:')
-        font_label.grid(row=1, column=0)
+        font_label.grid(row=1, column=1)
     
     else:
         #Selects just the name of the font, not the whole directory
@@ -217,7 +217,7 @@ def SelectOption(selection):
         #Updates the font label
         font_label.grid_forget()
         font_label = Label(placementframe, text = 'Font: '+font)
-        font_label.grid(row=1, column=0)
+        font_label.grid(row=1, column=1)
         
     #Updates the Caps button to be on or off
     if option.a[cposition].caps == 0:
@@ -240,15 +240,15 @@ def SelectOption(selection):
     else: 
         ex_btn.select()
         
-    size_ent.delete(0,END)
-    xpos_ent.delete(0,END)
-    ypos_ent.delete(0,END)
-    maxw_ent.delete(0,END)
+    size_box.delete(0,END)
+    xpos_box.delete(0,END)
+    ypos_box.delete(0,END)
+    maxw_box.delete(0,END)
     
-    size_ent.insert(0, option.a[cposition].size)
-    xpos_ent.insert(0, option.a[cposition].xpos)
-    ypos_ent.insert(0, option.a[cposition].ypos)
-    maxw_ent.insert(0, option.a[cposition].maxw)
+    size_box.insert(0, option.a[cposition].size)
+    xpos_box.insert(0, option.a[cposition].xpos)
+    ypos_box.insert(0, option.a[cposition].ypos)
+    maxw_box.insert(0, option.a[cposition].maxw)
         
     
         
@@ -277,7 +277,7 @@ def SelectFont():
         #updates the font label
         font_label.grid_forget()
         font_label = Label(placementframe, text = 'Font: '+font)
-        font_label.grid(row=1, column=0)
+        font_label.grid(row=1, column=1)
 
 # function to validate mark entry
 def only_numbers(char):
@@ -300,22 +300,60 @@ def updateSci():
     #updates the value of the caps variable
     option.a[cposition].sci = sci_var.get()
 
+#updates the value of the vaps variable when a Radio Button is hit.
 def updateRadio():
     #global variables
     global cposition
     
     #updates the value of the caps variable
     option.a[cposition].cent = cent_var.get()
+
+#Updates the size variable whenever an input is made into the box
+def updateSize():
+    #global variables
+    global cposition
     
+    #updates the values of size
+    option.a[cposition].size = size_box.get()
+    
+#Updates the xpos variable whenever an input is made into the box
+def updateXpos():
+    #global variables
+    global cposition
+    
+    #updates the values of size
+    option.a[cposition].xpos = xpos_box.get()
+    
+#Updates the ypos variable whenever an input is made into the box
+def updateYpos():
+    #global variables
+    global cposition
+    
+    #updates the values of size
+    option.a[cposition].ypos = ypos_box.get()
+    
+#Updates the maxw variable whenever an input is made into the box
+def updateMaxW():
+    #global variables
+    global cposition
+    
+    #updates the values of size
+    option.a[cposition].maxw = maxw_box.get()
+
+'''
+Made redundant by the implementation of spinboxes
+
+#Updates size, xpos, ypos, and maxw when update button is hit
 def Update():
     #global variables
     global cposition
     
     #updates the values of each respective variable
-    option.a[cposition].size = size_ent.get()
-    option.a[cposition].xpos = xpos_ent.get()
-    option.a[cposition].ypos = ypos_ent.get()
-    option.a[cposition].maxw = maxw_ent.get()
+    option.a[cposition].size = size_box.get()
+    option.a[cposition].xpos = xpos_box.get()
+    option.a[cposition].ypos = ypos_box.get()
+    option.a[cposition].maxw = maxw_box.get()
+'''
 
 #Updates Object instances to reflect the values stored in a preset, or do nothing if 'no preset' is selected
 def choosePreset(choice):
@@ -328,6 +366,7 @@ def choosePreset(choice):
     global cposition
     global save_btn
     global font_label
+    global size_var
     
     #if no preset selected
     if preset.get() == 'No Preset':
@@ -361,7 +400,7 @@ def choosePreset(choice):
         if option.a[cposition].font == '' :
             font_label.grid_forget()
             font_label = Label(placementframe, text = 'Select Font:')
-            font_label.grid(row=1, column=0)
+            font_label.grid(row=1, column=1)
         
         else:
             #Selects just the name of the font, not the whole directory
@@ -370,7 +409,7 @@ def choosePreset(choice):
             #Updates the font label
             font_label.grid_forget()
             font_label = Label(placementframe, text = 'Font: '+font)
-            font_label.grid(row=1, column=0)
+            font_label.grid(row=1, column=1)
             
         #Updates the Caps button to be on or off
         if option.a[cposition].caps == 0:
@@ -393,15 +432,18 @@ def choosePreset(choice):
         else: 
             ex_btn.select()
             
-        size_ent.delete(0,END)
-        xpos_ent.delete(0,END)
-        ypos_ent.delete(0,END)
-        maxw_ent.delete(0,END)
+        #size_box.delete(0,END)
+        xpos_box.delete(0,END)
+        ypos_box.delete(0,END)
+        maxw_box.delete(0,END)
         
-        size_ent.insert(0, option.a[cposition].size)
-        xpos_ent.insert(0, option.a[cposition].xpos)
-        ypos_ent.insert(0, option.a[cposition].ypos)
-        maxw_ent.insert(0, option.a[cposition].maxw)
+        
+        #size_box.insert(0, option.a[cposition].size)
+        xpos_box.insert(0, option.a[cposition].xpos)
+        ypos_box.insert(0, option.a[cposition].ypos)
+        maxw_box.insert(0, option.a[cposition].maxw)
+        
+        size_var.set(option.a[cposition].size)
         
         #activate save button
         save_btn['state'] = NORMAL
@@ -552,13 +594,23 @@ os.chdir(path)
 result = glob.glob('*.{}'.format(extension))
 result.sort()
 
+size_var = StringVar(value=0)
+xpos_var = StringVar(value=0)
+ypos_var = StringVar(value=0)
+maxw_var = StringVar(value=0)
+
 cent_var = IntVar()
 caps_var = IntVar()
 sci_var = IntVar()
     
     #Buttons
 font_btn = Button(placementframe, text= 'Browse', command=SelectFont)
+
+'''
+Made redundant by the implementation of spinboxes
 update_btn = Button(placementframe, text='Update' , command=Update)
+'''
+
 save_btn = Button(placementframe, text='Save' , command=Save)
 saveas_btn = Button(placementframe, text='Save as' , command=Saveas)
 
@@ -574,49 +626,49 @@ sci_btn = Checkbutton(placementframe, variable=sci_var, command=updateSci)
 cpos_menu = OptionMenu(placementframe, cpos, cpos, *columns, command=SelectOption)
 preset_menu = OptionMenu(placementframe, preset,'No Preset', *result, command=choosePreset)
     
-    #Entry boxes
-size_ent = Entry(placementframe, validate='key', validatecommand=(validation, '%S'))
-xpos_ent = Entry(placementframe, validate='key', validatecommand=(validation, '%S'))
-ypos_ent = Entry(placementframe, validate='key', validatecommand=(validation, '%S'))
-maxw_ent = Entry(placementframe, validate='key', validatecommand=(validation, '%S'))
+    #Spin boxes
+size_box = Spinbox(placementframe,from_=0, to=10000, textvariable=size_var, command=updateSize)
+xpos_box = Spinbox(placementframe,from_=0, to=10000, textvariable=xpos_var, command=updateXpos)
+ypos_box = Spinbox(placementframe,from_=0, to=10000, textvariable=ypos_var, command=updateYpos)
+maxw_box = Spinbox(placementframe,from_=0, to=10000, textvariable=maxw_var, command=updateMaxW)
 
 #place widgets in placement frame
     
     #Labels
 cpos_label.grid(row=0 , column=0)
 preset_label.grid(row=0 , column=2 )
-font_label.grid(row=1 , column=0 )
-size_label.grid(row=1 , column=2 )
-caps_label.grid(row=1 , column=4 )
-sci_label.grid(row=1 , column=6 )
-xpos_label.grid(row=2 , column=0 )
-ypos_label.grid(row=2 , column=2 )
-maxw_label.grid(row=2 , column=4 )
+font_label.grid(row=1 , column=1 )
+size_label.grid(row=2 , column=0 )
+caps_label.grid(row=5 , column=0 )
+sci_label.grid(row=5 , column=2 )
+xpos_label.grid(row=3 , column=0 )
+ypos_label.grid(row=3 , column=2 )
+maxw_label.grid(row=2 , column=2 )
     
     
     #Buttons
-font_btn.grid(row=1 , column=1)
-update_btn.grid(row=4 , column=5)
-save_btn.grid(row=4 , column=6)
-saveas_btn.grid(row=4 , column=7)
+font_btn.grid(row=1 , column=2)
+#update_btn.grid(row=6 , column=1)
+save_btn.grid(row=6 , column=2)
+saveas_btn.grid(row=6 , column=3)
 
     #Radio Buttons
-cent_btn.grid(row=3 , column=0)
-ex_btn.grid(row=3 , column=1)
+cent_btn.grid(row=4 , column=1)
+ex_btn.grid(row=4 , column=2)
 
     #Check Buttons
-caps_btn.grid(row=1, column=5)
-sci_btn.grid(row=1, column=7) 
+caps_btn.grid(row=5, column=1)
+sci_btn.grid(row=5, column=3) 
 
     #Option Menus
 cpos_menu.grid(row=0, column=1)
 preset_menu.grid(row=0, column=3)
     
     #Entry Boxes
-size_ent.grid(row=1, column=3)
-xpos_ent.grid(row=2, column=1)
-ypos_ent.grid(row=2, column=3)
-maxw_ent.grid(row=2, column=5)
+size_box.grid(row=2, column=1)
+xpos_box.grid(row=3, column=1)
+ypos_box.grid(row=3, column=3)
+maxw_box.grid(row=2, column=3)
     
 #Disables inactive widgets in Placement Frame
     
@@ -633,7 +685,7 @@ maxw_label['state'] = DISABLED
 
     #Buttons
 font_btn['state'] = DISABLED
-update_btn['state'] = DISABLED
+#update_btn['state'] = DISABLED
 save_btn['state'] = DISABLED
 saveas_btn['state'] = DISABLED
 
@@ -650,10 +702,10 @@ cpos_menu['state'] = DISABLED
 preset_menu['state'] = DISABLED
 
     #Entry Boxes
-size_ent['state'] = DISABLED
-xpos_ent['state'] = DISABLED
-ypos_ent['state'] = DISABLED
-maxw_ent['state'] = DISABLED
+size_box['state'] = DISABLED
+xpos_box['state'] = DISABLED
+ypos_box['state'] = DISABLED
+maxw_box['state'] = DISABLED
 
 #established the mainloop of the tkinter root
 root.mainloop()
