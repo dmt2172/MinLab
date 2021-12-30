@@ -21,6 +21,10 @@ import random
 import os
 import glob
 
+from PIL import Image as IM
+from PIL import ImageDraw as ID
+from PIL import ImageFont as IF
+
 
 
 #Get Current directory, set as cd.
@@ -28,6 +32,18 @@ cd = os.getcwd()
 
 #empty save directory
 savedir = ''
+
+#Condition Checker. 0 if not met, 1 if met
+CC = [0,0,0,0,0,0]
+
+'''
+1. Spreadsheet chosen?
+2. Template chosed?
+3. Option/Preset chosen?
+4. Indeces chosen?
+5. Savename format chosen?
+6. Save directory chosen?
+'''
 
 #Empty Object Class with 9 parameters
 class Parameters:
@@ -143,10 +159,6 @@ def BrowseSheet():
         saveop_lab['state'] = NORMAL
         text_lab['state'] = NORMAL
         example_lab['state'] = NORMAL
-        add_btn['state'] = NORMAL
-        remove_btn['state'] = NORMAL
-        clear_btn['state'] = NORMAL
-        all_btn['state'] = NORMAL
         index_menu['state'] = NORMAL
         option_box['state'] = NORMAL
         save_box['state'] = NORMAL
@@ -168,6 +180,11 @@ def BrowseSheet():
         save_box= Listbox(itemframe, width=40, height=4, listvariable=save_names_var, selectmode=BROWSE)
         save_box.grid(row=5, column=0, columnspan=2)
         save_box.bind("<<ListboxSelect>>", selectSaveFormat)
+        
+        #updates Condition Checker
+        CC[0] = 1
+        if sum(CC)==6:
+            go_btn['state']=NORMAL
 
     
 #Looks for a template image file and opens
@@ -204,7 +221,40 @@ def BrowseTemplate():
         canvas_label.grid_forget()
         canvas_label= Label(templateframe, image = img)
         canvas_label.grid(row=0, column=0)
-   
+        
+        #Updates Condition Checker
+        CC[1] = 1
+        if sum(CC)==6:
+            go_btn['state']=NORMAL 
+#looks for a directory to save labels into
+def BrowseSave():
+    #global variables
+    global save_filename
+    global savedir_label
+    
+    #uses filedialog to select a template image file
+    save_filename = filedialog.askdirectory(title="Select Save Directory", initialdir=cd+"/Saves")
+    
+    #allows for the cancel option
+    if save_filename == '':
+        pass
+    
+    #If there is a choice, proceed
+    else:
+        #resets the selected sheet label
+        savedir_label.grid_forget()
+       
+        #Selects just the name of the sheet, not the whole directory
+        template_name = Path(save_filename).name
+                
+        #displays the condensed filename as a label.     
+        savedir_label = Label(selectionframe, text='Save Folder: ' +template_name)
+        savedir_label.grid(row=5, column=0, columnspan=2)
+        
+        #Updates the Condition Checker
+        CC[5] = 1
+        if sum(CC)==6:
+            go_btn['state']=NORMAL
 #When an Option is selected, update the placement frame to reflect the parameters of that specific option     
 def SelectOption(selection):
     
@@ -220,6 +270,11 @@ def SelectOption(selection):
         if selection == columns[i]:
             cposition = i
     
+    #updates Condition Checker
+    CC[3] = 1
+    if sum(CC)==6:
+            go_btn['state']=NORMAL
+            
     #Enable all the widgets in Placement Frame
     font_label['state'] = NORMAL
     size_label['state'] = NORMAL
@@ -461,7 +516,12 @@ def choosePreset(choice):
         
         #activate save button
         save_btn['state'] = NORMAL
-
+        
+        #updates Condition Checker
+        CC[2] = 1
+        if sum(CC)==6:
+            go_btn['state']=NORMAL
+            
 #saves the current options to the selected preset directory
 def Save():
     
@@ -602,6 +662,11 @@ def selectIndex(selection):
     text_box.delete('1.0', END)
     text_box.insert(INSERT, selected_list)
     text_box['state'] = DISABLED
+    
+    add_btn['state'] = NORMAL
+    remove_btn['state'] = NORMAL
+    clear_btn['state'] = NORMAL
+    all_btn['state'] = NORMAL
 
 #adds the selected item/items to the list of items to be made into labels
 def addItem():
@@ -635,6 +700,11 @@ def addItem():
     text_box.delete('1.0', END)
     text_box.insert(INSERT, selected_list)
     text_box['state'] = DISABLED
+    
+    #updates Condition Checker
+    CC[3] = 1
+    if sum(CC)==6:
+            go_btn['state']=NORMAL
 
 #removes the selected item/items from the list of items to be made into labels
 def removeItem():
@@ -686,6 +756,10 @@ def clearItem():
     text_box.insert(INSERT, selected_list)
     text_box['state'] = DISABLED
     
+    #updates Condition Checker
+    CC[3] = 0
+    go_btn['state']=DISABLED
+    
     pass
 
 #adds ALL items to the list of items to be made into labels
@@ -707,23 +781,27 @@ def allItem():
     text_box.delete('1.0', END)
     text_box.insert(INSERT, selected_list)
     text_box['state'] = DISABLED
+    
+    #updates Condition Checker
+    CC[3] = 1
+    if sum(CC)==6:
+            go_btn['state']=NORMAL
 
 #When an option for the save format of each label is chosen from the list box, update the variable, and example
 def selectSaveFormat(virtualevent):
     
     #global variables
     global example_lab
-    print(save_box.curselection())
     
     #For whatever is selected, update the example label.
     if save_box.curselection() == (0,):
-        example = sheetDataFrame.iloc[0][0] + ' + ' + sheetDataFrame.iloc[0][1] + '.jpg'
+        example = sheetDataFrame.iloc[0][0] +' '+ sheetDataFrame.iloc[0][1] + '.jpg'
     
     elif save_box.curselection() == (1,):
         example = sheetDataFrame.iloc[0][0] + '.jpg'
     
     elif save_box.curselection() == (2,):
-        example = sheetDataFrame.iloc[0][1] + ' + ' + sheetDataFrame.iloc[0][3] + '.jpg'
+        example = sheetDataFrame.iloc[0][1] +' '+ sheetDataFrame.iloc[0][3] + '.jpg'
         
     elif save_box.curselection() == (3,):
         example = sheetDataFrame.iloc[0][0] + ' Label' + '.jpg'
@@ -731,15 +809,88 @@ def selectSaveFormat(virtualevent):
     #Update the example label to reflect the choice
     example_lab.grid_forget()
     example_lab = Label(itemframe, text= 'Example: '+example)
-    example_lab.grid(row=6, column=0, columnspan=2)    
+    example_lab.grid(row=6, column=0, columnspan=2)   
+    
+    #updates Condition Checker
+    CC[4] = 1
+    if sum(CC)==6:
+            go_btn['state']=NORMAL
 
 #The ultimate command. Checks to see if all preconditions are met, then creates labels.
 def createLabels():
+    
+    #global variables
+    
+    #loop for each row
+    for i in range(len(selected_items)):
+        
+        #initializes the template
+        image = IM.open(template_filename)
+        img_w, img_h = image.size
+        draw = ID.Draw(image)
+        
+        #loop for each column
+        for j in range(len(sheetDataFrame.iloc[0])):
+    
+            #checks for NaN, if value exists continue
+            if pd.isna(sheetDataFrame.iloc[selected_items[i]][j]) == False:
+                print(sheetDataFrame.iloc[selected_items[i]][j])
+    
+                #sets color as black --- NEEDS TO BECOME AN OPTION
+                Color = 'rgb(0,0,0)'
+                
+                #makes a size variable
+                size = option.a[j].size
+                
+                #makes a Font variable
+                Font = IF.truetype(option.a[j].font, size)
+                
+                #checks size, if size is wider than maxW then reduce size
+                w,h = draw.textsize(sheetDataFrame.iloc[selected_items[i]][j],font=Font)
+                while w > option.a[j].maxw:
+                    #reduce size
+                    size = size - 1
+                    #resize Font
+                    Font = IF.truetype(option.a[j].font, size)
+                    #new width and hiegth variables to check
+                    w,h = draw.textsize(sheetDataFrame.iloc[selected_items[i]][j],font=Font)
+                
+                #If exact position, (X,Y) is exact
+                if option.a[j].cent == 1:
+                    (x,y) = (option.a[j].xpos,option.a[j].ypos)
+                
+                #If Centerered, (X,Y) is centered
+                elif option.a[j].cent == 0:
+                    (x,y) = (img_w-option.a[j].xpos/2, img_h-option.a[j].ypos/2)
+                
+                #If CAPS lock is on, replace with full caps
+                if option.a[j].caps == 0:
+                    sheetDataFrame.iloc[i][j]=sheetDataFrame.iloc[i][j].upper()
+                    
+                draw.text((x,y), sheetDataFrame.iloc[i][j], fill=Color, font=Font)
+    
+        if save_box.curselection() == (0,):
+            Filename = sheetDataFrame.iloc[i][0] +' '+ sheetDataFrame.iloc[i][1] + '.jpg'
+    
+        elif save_box.curselection() == (1,):
+            Filename = sheetDataFrame.iloc[i][0] + '.jpg'
+        
+        elif save_box.curselection() == (2,):
+            Filename = sheetDataFrame.iloc[i][1] +' '+ sheetDataFrame.iloc[i][3] + '.jpg'
+            
+        elif save_box.curselection() == (3,):
+            Filename = sheetDataFrame.iloc[i][0] + ' Label' + '.jpg'
+        
+        print(Filename)
+        save = save_filename + '/' + Filename
+        image.save(save)
+                
+    
+    
     pass
 
-def labelMaker(x,y):
-    pass
-      
+
+
 #create widgets for selection frame
     
     #Labels
@@ -747,10 +898,13 @@ ss_label = Label(selectionframe, text= "Choose a Spreadsheet:")
 sheet_label = Label(selectionframe, text='')
 t_label = Label(selectionframe, text= "Choose a Template:")
 temp_label = Label(selectionframe, text='')
+sav_label = Label(selectionframe, text='Choose a Save Directory')
+savedir_label = Label(selectionframe, text='')
 
     #Buttons
 ss_btn = Button(selectionframe, text= "Browse", command = BrowseSheet)
 t_btn = Button(selectionframe, text="Browse", command=BrowseTemplate)
+sav_btn = Button(selectionframe, text="Browse", command=BrowseSave)
 
 #place widgets for selection frame
 
@@ -759,11 +913,13 @@ ss_label.grid(row=0, column=0)
 sheet_label.grid(row=1, column=0, columnspan=2)
 t_label.grid(row=2, column=0)
 temp_label.grid(row=3, column=0, columnspan=2)
+sav_label.grid(row=4, column=0)
+savedir_label.grid(row=5, column=0, columnspan=2)
 
     #buttons
 ss_btn.grid(row=0, column=1)
 t_btn.grid(row=2, column=1)
-
+sav_btn.grid(row=4, column=1)
 
 #create widgets for template frame
 canvas_label = Label(templateframe)
