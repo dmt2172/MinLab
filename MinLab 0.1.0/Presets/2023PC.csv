@@ -1,0 +1,7 @@
+,name,xpos,ypos,cent,maxw,font,size,caps,sci
+0,IDs,10,7,1,440,Minecraft.ttf,0,0,0
+1,Species,300,40,0,440,Minecraft.ttf,60,1,0
+2,Subspecies,300,101,0,440,Minecraft.ttf,40,0,0
+3,Locality 1,300,145,0,440,Minecraft.ttf,40,0,0
+4,Locality 2,300,185,0,440,Minecraft.ttf,40,0,0
+5,Locality 3,300,225,0,440,Minecraft.ttf,40,0,0
